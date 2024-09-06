@@ -1,0 +1,248 @@
+
+Dim mainws As Worksheet
+Dim hsiws As Worksheet
+
+Sub updatebutton()
+    Call getHsi
+    Call capandhsireturn
+    Call apy
+    Call getHsiapy
+End Sub
+
+
+
+Function mainGetLastDataRow() As Long
+    Dim mainlastRow As Long
+    
+    
+    ' Set the worksheet where you want to find the last row
+    Set mainws = Worksheets("main")
+    
+    ' Find the last row with data in Column A
+    mainlastRow = mainws.Cells(mainws.Rows.Count, "A").End(xlUp).Row
+    
+    mainGetLastDataRow = mainlastRow
+    
+End Function
+
+
+Function hsiGetLastDataRow() As Long
+
+    Dim hsilastRow As Long
+
+    ' Set the worksheet where you want to find the last row
+    Set hsiws = Worksheets("hsidata")
+    
+    ' Find the last row with data in Column A
+    hsilastRow = hsiws.Cells(hsiws.Rows.Count, "A").End(xlUp).Row
+    
+    hsiGetLastDataRow = hsilastRow
+    
+End Function
+
+
+Sub TestGetLastDataRow()
+    Dim lastDataRow As Long
+    
+    lastDataRow = mainGetLastDataRow()
+    
+    MsgBox "The last row with data in Column A is: " & lastDataRow
+End Sub
+
+Sub getHsi()
+
+    Dim mainlastDataRow As Integer
+    Dim hsilastDataRow As Integer
+    Dim myDate As Date
+    
+    hsilastDataRow = hsiGetLastDataRow()
+    mainlastDataRow = mainGetLastDataRow()
+    
+    
+    Dim i As Integer
+    Dim k As Integer
+
+    
+    ' Set the worksheet where you want to search for the date ID
+    Set hsiws = Worksheets("hsidata")
+    Set mainws = Worksheets("main")
+    
+    
+    For k = 1 To hsilastDataRow
+        If mainws.Cells(mainlastDataRow, 2).Value = hsiws.Cells(k, 1).Value Then
+            mainws.Cells(mainlastDataRow, 4).Value = hsiws.Cells(k, 5).Value
+            Exit For
+            
+        End If
+    Next k
+            
+    
+    'If no match
+    If mainws.Cells(mainlastDataRow, 4).Value = "" Then
+        
+        myDate = mainws.Cells(mainlastDataRow, 2).Value - 1
+        
+        Call getHsisub(mainlastDataRow, hsilastDataRow, myDate)
+        
+    
+    End If
+    
+    'If still no match
+    If mainws.Cells(mainlastDataRow, 4).Value = "" Then
+    
+        myDate = myDate - 1
+        
+        Call getHsisub(mainlastDataRow, hsilastDataRow, myDate)
+    
+    End If
+    
+            
+        
+End Sub
+
+
+Sub getHsisub(mainlastDataRow As Integer, hsilastDataRow As Integer, myDate As Date)
+
+
+
+    Set hsiws = Worksheets("hsidata")
+    Set mainws = Worksheets("main")
+    
+    For k = 1 To hsilastDataRow
+        If hsiws.Cells(k, 1).Value = myDate Then
+            mainws.Cells(mainlastDataRow, 4).Value = hsiws.Cells(k, 5).Value
+        Exit For
+
+        End If
+    Next k
+
+    
+    
+End Sub
+
+
+
+Sub apy()
+    Dim datesRange As Range
+    Dim newDate As Date
+    Dim closestDate As Date
+    Dim dateDiff As Date
+    Dim minDiff As Long
+    Dim cell As Range
+    Dim rowNumber As Long
+    
+    Dim lastDataRow As Long
+    
+    
+    lastDataRow = mainGetLastDataRow()
+    
+    Set mainws = Worksheets("main")
+    Set datesRange = mainws.Range("B2:B" & lastDataRow)
+    
+    newDate = mainws.Cells(lastDataRow, 2).Value ' New date 1 year ago
+    newDate = newDate - 365
+    
+    'pick first date > newdate
+    For Each cell In datesRange
+        If newDate < cell.Value Then
+            rowNumber = cell.Row
+            'update capital return apy
+             mainws.Cells(lastDataRow, 8).Value = (mainws.Cells(lastDataRow, 3).Value - mainws.Cells(rowNumber, 3).Value) / (mainws.Cells(rowNumber, 3).Value) * 100
+            Exit Sub
+        End If
+    Next cell
+    
+    
+End Sub
+
+
+
+Sub getHsiapy()
+
+    Dim mainlastDataRow As Integer
+    Dim hsilastDataRow As Integer
+    Dim myDate As Date
+    
+    hsilastDataRow = hsiGetLastDataRow()
+    mainlastDataRow = mainGetLastDataRow()
+    
+    
+    Dim i As Integer
+    Dim k As Integer
+
+    
+    ' Set the worksheet where you want to search for the date ID
+    Set hsiws = Worksheets("hsidata")
+    Set mainws = Worksheets("main")
+    
+    
+    
+    For k = 1 To hsilastDataRow
+        If mainws.Cells(mainlastDataRow, 2).Value - 365 = hsiws.Cells(k, 1).Value Then
+            mainws.Cells(mainlastDataRow, 9).Value = (mainws.Cells(mainlastDataRow, 4).Value - hsiws.Cells(k, 5).Value) / hsiws.Cells(k, 5).Value * 100
+            Exit For
+
+        End If
+    Next k
+
+
+    'If no match
+    If mainws.Cells(mainlastDataRow, 9).Value = "" Then
+
+        For k = 1 To hsilastDataRow
+            If mainws.Cells(mainlastDataRow, 2).Value - 364 = hsiws.Cells(k, 1).Value Then
+                mainws.Cells(mainlastDataRow, 9).Value = (mainws.Cells(mainlastDataRow, 4).Value - hsiws.Cells(k, 5).Value) / hsiws.Cells(k, 5).Value * 100
+            Exit For
+
+        End If
+        Next k
+
+
+    End If
+
+    'If still no match
+    If mainws.Cells(mainlastDataRow, 9).Value = "" Then
+
+        For k = 1 To hsilastDataRow
+            If mainws.Cells(mainlastDataRow, 2).Value - 363 = hsiws.Cells(k, 1).Value Then
+                mainws.Cells(mainlastDataRow, 9).Value = (mainws.Cells(mainlastDataRow, 4).Value - hsiws.Cells(k, 5).Value) / hsiws.Cells(k, 5).Value * 100
+            Exit For
+
+        End If
+        Next k
+
+
+    End If
+    
+        'If still no match
+    If mainws.Cells(mainlastDataRow, 9).Value = "" Then
+
+        For k = 1 To hsilastDataRow
+            If mainws.Cells(mainlastDataRow, 2).Value - 362 = hsiws.Cells(k, 1).Value Then
+                mainws.Cells(mainlastDataRow, 9).Value = (mainws.Cells(mainlastDataRow, 4).Value - hsiws.Cells(k, 5).Value) / hsiws.Cells(k, 5).Value * 100
+            Exit For
+
+        End If
+        Next k
+
+
+    End If
+
+
+        
+End Sub
+
+Sub capandhsireturn()
+
+    Set mainws = Worksheets("main")
+    
+    
+    Dim lastDataRow As Long
+    
+    mainlastDataRow = mainGetLastDataRow()
+    mainws.Cells(mainlastDataRow, 6).Value = (mainws.Cells(mainlastDataRow, 3).Value - mainws.Cells(2, 3).Value) / mainws.Cells(2, 3).Value * 100
+    
+    mainws.Cells(mainlastDataRow, 7).Value = (mainws.Cells(mainlastDataRow, 4).Value - mainws.Cells(2, 4).Value) / mainws.Cells(2, 4).Value * 100
+
+End Sub
+
